@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f3f6fa">
-  <title>学习资料 - 文件资源管理器</title>
-  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <title>雅思学习资料</title>
+  <!-- <link rel="icon" href="./favicon.svg" type="image/svg+xml"> -->
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">M</div>
-        <div><strong>学习资料</strong><span>材料导航中心</span></div>
+        <div class="brand-mark" aria-hidden="true">NB</div>
+        <div><span>材料导航中心</span></div>
       </div>
       <div class="nav-caption">快速访问</div>
       <button class="nav-item active" data-view="all"><span class="nav-icon">▦</span><span>全部材料</span><span class="nav-count" id="all-count">0</span></button>
@@ -23,7 +23,7 @@
       <div class="sidebar-bottom">
         <div class="storage-icon">▤</div>
         <div><strong>本地材料库</strong><span id="folder-count">正在读取…</span></div>
-        <span class="online-dot" title="本地可用"></span>
+        <span class="online-dot" title="可用"></span>
       </div>
     </aside>
 
@@ -53,11 +53,11 @@
               <span class="sort-label">名称 <span>↑</span></span>
             </div>
             <div id="file-list" class="file-list" role="list"></div>
-            <div id="empty-state" class="empty-state" hidden>
+            <!-- <div id="empty-state" class="empty-state" hidden>
               <div class="empty-icon">⌕</div>
               <strong>没有找到匹配的材料</strong>
               <span>换个关键词，或选择其他文件夹试试</span>
-            </div>
+            </div> -->
           </section>
           <aside id="details-pane" class="details-pane">
             <div class="details-empty">

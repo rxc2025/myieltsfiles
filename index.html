@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f6fa">
+  <title>学习资料 - 文件资源管理器</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">M</div>
+        <div><strong>学习资料</strong><span>材料导航中心</span></div>
+      </div>
+      <div class="nav-caption">快速访问</div>
+      <button class="nav-item active" data-view="all"><span class="nav-icon">▦</span><span>全部材料</span><span class="nav-count" id="all-count">0</span></button>
+      <button class="nav-item" data-view="recent"><span class="nav-icon">◷</span><span>最近更新</span></button>
+      <div class="nav-caption folder-caption">文件夹 <button id="refresh-button" class="icon-button" title="刷新材料列表" aria-label="刷新材料列表">↻</button></div>
+      <nav id="folder-tree" class="folder-tree" aria-label="材料文件夹"></nav>
+      <div class="sidebar-bottom">
+        <div class="storage-icon">▤</div>
+        <div><strong>本地材料库</strong><span id="folder-count">正在读取…</span></div>
+        <span class="online-dot" title="本地可用"></span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumbs" id="breadcrumbs" aria-label="当前位置"></div>
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <input id="search-input" type="search" placeholder="搜索文件或内容" autocomplete="off">
+          <kbd>⌘ K</kbd>
+        </label>
+      </header>
+      <section class="content">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">MATERIALS LIBRARY</div>
+            <h1 id="page-title">全部材料</h1>
+            <p id="page-subtitle">浏览并打开 materials 文件夹中的学习资料</p>
+          </div>
+          <button id="view-toggle" class="view-toggle" title="切换显示方式" aria-label="切换显示方式"><span>☷</span><span>详细信息</span></button>
+        </div>
+        <div class="type-chips" id="type-chips" aria-label="按类型筛选"></div>
+        <div class="workspace">
+          <section class="file-area">
+            <div class="list-toolbar">
+              <span id="result-count">正在读取材料…</span>
+              <span class="sort-label">名称 <span>↑</span></span>
+            </div>
+            <div id="file-list" class="file-list" role="list"></div>
+            <div id="empty-state" class="empty-state" hidden>
+              <div class="empty-icon">⌕</div>
+              <strong>没有找到匹配的材料</strong>
+              <span>换个关键词，或选择其他文件夹试试</span>
+            </div>
+          </section>
+          <aside id="details-pane" class="details-pane">
+            <div class="details-empty">
+              <div class="empty-preview-icon">▧</div>
+              <strong>选择一个文件</strong>
+              <span>文件信息和内容摘要会显示在这里</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <footer class="statusbar"><span id="status-left">准备就绪</span><span id="status-right">本地材料</span></footer>
+    </main>
+  </div>
+  <script src="./app.js" defer></script>
+</body>
+</html>

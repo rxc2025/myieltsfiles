@@ -15,7 +15,11 @@ node generate-files-manifest.mjs
 Cloudflare Pages 配置：
 
 - Build command：`node generate-files-manifest.mjs`
-- Build output directory：`/`（仓库根目录）
+- Build output directory：`.`（仓库根目录）
 - Environment variables：无需设置
 
 新增、删除或重命名文件后重新部署即可自动更新目录。点开 HTML 文件将以实际部署路径打开。
+
+## 外观设置
+
+界面默认识别浏览器系统语言（简体中文或英语）及系统深色模式。顶部按钮可手动切换语言或主题，选择会保存在当前浏览器中；清除浏览器站点数据后恢复系统默认。侧栏底部显示当前版本号。

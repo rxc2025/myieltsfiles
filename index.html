@@ -3,51 +3,76 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f4f5f7">
+  <meta name="theme-color" content="#faf7ed">
   <title>WebFile Explorer</title>
+  <script>
+    (() => {
+      try {
+        const savedTheme=localStorage.getItem("webfile-theme");
+        const savedLanguage=localStorage.getItem("webfile-language");
+        const theme=savedTheme==="dark"||savedTheme==="light"?savedTheme:(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+        const lang=savedLanguage==="zh"||savedLanguage==="en"?savedLanguage:(navigator.language.toLowerCase().startsWith("zh")?"zh":"en");
+        document.documentElement.dataset.theme=theme;
+        document.documentElement.dataset.language=lang;
+        document.documentElement.lang=lang==="zh"?"zh-CN":"en";
+      } catch {
+        document.documentElement.dataset.theme=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
+        const lang=navigator.language.toLowerCase().startsWith("zh")?"zh":"en";
+        document.documentElement.dataset.language=lang;
+        document.documentElement.lang=lang==="zh"?"zh-CN":"en";
+      }
+    })();
+  </script>
   <style>
     :root {
-      --bg:#f4f5f7;
+      color-scheme:light;
+      --bg:#f7f6f1;
       --panel:#fff;
-      --soft:#eceef2;
-      --text:#20232a;
-      --muted:#7b8090;
-      --line:#e4e6eb;
-      --accent:#7465c9;
-      --accent-soft:#eeebfb;
-      --shadow:0 10px 30px rgba(31,35,48,.08);
+      --soft:#f1eee4;
+      --text:#29271f;
+      --muted:#777467;
+      --line:#e9e5d8;
+      --accent:#bd8c13;
+      --accent-soft:#fff4d2;
+      --shadow:0 14px 36px rgba(29,35,54,.08);
+      --shadow-card:0 2px 6px rgba(29,35,54,.03),0 12px 30px rgba(29,35,54,.04);
     }
     [data-theme="dark"] {
-      --bg:#101217;
-      --panel:#181b22;
-      --soft:#22262f;
-      --text:#f3f4f7;
-      --muted:#a2a6b2;
-      --line:#292d37;
-      --accent:#9b8be2;
-      --accent-soft:#29243a;
-      --shadow:0 14px 34px rgba(0,0,0,.24);
+      color-scheme:dark;
+      --bg:#15140f;
+      --panel:#1d1b15;
+      --soft:#29271f;
+      --text:#f3efe3;
+      --muted:#aaa694;
+      --line:#353225;
+      --accent:#efc24e;
+      --accent-soft:#3c321b;
+      --shadow:0 18px 44px rgba(0,0,0,.3);
+      --shadow-card:0 2px 6px rgba(0,0,0,.12),0 14px 30px rgba(0,0,0,.16);
     }
     *{box-sizing:border-box}
-    body{margin:0;min-width:320px;height:100vh;overflow:hidden;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--text);background:var(--bg)}
+    body{margin:0;min-width:320px;height:100vh;overflow:hidden;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--text);background:var(--bg);transition:background .22s ease,color .22s ease}
     button,input{font:inherit}
     button{color:inherit}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
     .app{height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr)}
     .app.details-open{grid-template-columns:220px minmax(0,1fr) var(--details-width,300px)}
-    .sidebar{display:flex;flex-direction:column;padding:16px 12px;border-right:1px solid var(--line);background:var(--panel)}
-    .brand{display:flex;align-items:center;gap:10px;height:48px;padding:0 8px;font-weight:750}
+    .sidebar{position:relative;display:flex;flex-direction:column;padding:18px 12px 12px;border-right:1px solid var(--line);background:var(--panel);box-shadow:4px 0 24px rgba(24,30,46,.025)}
+    .brand{display:flex;align-items:center;gap:10px;height:48px;padding:0 8px;font-weight:750;letter-spacing:-.02em}
     .brand-name{flex:1}
     .sidebar-toggle{width:30px;height:30px;flex:none}
     .sidebar-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;transition:transform .18s ease}
     .sidebar-collapsed .sidebar-toggle svg{transform:rotate(180deg)}
-    .brand-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:11px;background:var(--accent);color:#fff}
+    .brand-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#eac451,#bd8c13);color:#fff;box-shadow:0 6px 16px rgba(189,140,19,.22)}
     .brand-icon svg{width:20px;height:20px}
-    .nav{display:flex;flex-direction:column;gap:4px;margin-top:12px}
-    .nav-label{margin:18px 10px 6px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em}
-    .nav button{height:40px;border:0;border-radius:9px;display:flex;align-items:center;gap:10px;padding:0 10px;background:none;cursor:pointer;text-align:left;font-size:13px}
+    .nav{display:flex;flex-direction:column;gap:4px;margin-top:18px}
+    .nav-label{margin:22px 10px 8px;color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.1em;text-transform:uppercase}
+    .nav button{height:40px;border:0;border-radius:9px;display:flex;align-items:center;gap:10px;padding:0 10px;background:none;color:var(--muted);cursor:pointer;text-align:left;font-size:13px;transition:background .16s ease,color .16s ease,transform .16s ease}
     .nav button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}
-    .nav button:hover{background:var(--soft)}
+    .nav button:hover{background:var(--soft);color:var(--text)}
     .nav button.active{background:var(--accent-soft);color:var(--accent);font-weight:700}
+    .nav button.active::before{content:"";width:3px;height:18px;margin-left:-10px;margin-right:7px;border-radius:0 3px 3px 0;background:var(--accent)}
     .folder-tree{display:flex;flex-direction:column;gap:2px;margin-top:2px}
     .tree-node{min-width:0}
     .tree-line{height:34px;display:flex;align-items:center;gap:2px;padding-right:6px;border-radius:8px}
@@ -73,18 +98,25 @@
     .sidebar-collapsed .tree-line{justify-content:center;padding:0}
     .sidebar-collapsed .tree-expander{display:none}
     .sidebar-collapsed .tree-folder{justify-content:center;padding:0}
+    .sidebar-footer{margin-top:auto;min-height:44px;display:flex;align-items:center;gap:8px;padding:10px 9px 0;border-top:1px solid var(--line);color:var(--muted);font-size:10.5px}
+    .status-dot{width:7px;height:7px;flex:none;border-radius:50%;background:#38a979;box-shadow:0 0 0 3px rgba(56,169,121,.12)}
+    .footer-label{flex:1}
+    .version{font-variant-numeric:tabular-nums;color:var(--muted);font-size:10px}
+    .sidebar-collapsed .sidebar-footer{justify-content:center;padding-right:0;padding-left:0}
+    .sidebar-collapsed .footer-label{display:none}
+    .sidebar-collapsed .version{font-size:8px}
     .main{min-width:0;display:flex;flex-direction:column}
     .details-panel{display:none;width:100%;min-width:240px;max-width:520px;border-left:1px solid var(--line);background:var(--panel);position:relative;overflow:hidden}
     .app.details-open .details-panel{display:flex;flex-direction:column}
     .details-resizer{position:absolute;z-index:5;left:-4px;top:0;width:8px;height:100%;cursor:col-resize}
     .details-resizer::after{content:"";position:absolute;left:3px;top:0;width:1px;height:100%;background:transparent;transition:background .15s}
     .details-resizer:hover::after,.details-resizer.dragging::after{background:var(--accent)}
-    .details-header{height72px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line)}
-    .details-header h2{margin:0;font-size14px}
+    .details-header{height:72px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line)}
+    .details-header h2{margin:0;font-size:14px}
     .details-body{padding:18px;overflow-x:hidden;overflow-y:auto}
-    .details-preview{height150px;display:grid;place-items:center;margin-bottom16px;border-radius12px;background:var(--soft)}
-    .details-preview .folder-icon{width72px;height72px}
-    .details-name{margin:0 0 14px;font-size15px;font-weight750;word-break:break-word}
+    .details-preview{height:150px;display:grid;place-items:center;margin-bottom:16px;border-radius:12px;background:var(--soft)}
+    .details-preview .file-icon{width:72px;height:72px}
+    .details-name{margin:0 0 14px;font-size:15px;font-weight:750;word-break:break-word}
     .detail-row{display:grid;grid-template-columns:68px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px}
     .detail-row span:first-child{color:var(--muted)}
     .detail-row span:last-child{min-width:0;text-align:right;overflow-wrap:anywhere;word-break:break-word;line-height:1.45}
@@ -98,39 +130,59 @@
     .tree-content{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .22s ease,opacity .16s ease}
     .tree-group.open>.tree-content{grid-template-rows:1fr;opacity:1}
     .tree-content-inner{min-height:0;overflow:hidden}
-    .tree-row{min-height:36px;display:grid;grid-template-columns:68px minmax(0,1fr);align-items:start;gap:10px;padding:8px 4px 8px 24px;font-size12px}
+    .tree-row{min-height:36px;display:grid;grid-template-columns:68px minmax(0,1fr);align-items:start;gap:10px;padding:8px 4px 8px 24px;font-size:12px}
     .tree-row-label{color:var(--muted)}
     .tree-row-value{min-width:0;text-align:left;overflow-wrap:anywhere;word-break:break-word;line-height:1.45}
-    .breadcrumb{height24px;margin-bottom:8px;display:flex;align-items:center;gap4px;color:var(--muted);font-size12px}
-    .breadcrumb button{border:0;border-radius6px;padding4px 6px;background:none;color:inherit;cursor:pointer}
+    .breadcrumb{height:24px;margin-bottom:8px;display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px}
+    .breadcrumb button{border:0;border-radius:6px;padding:4px 6px;background:none;color:inherit;cursor:pointer}
     .breadcrumb button:hover{background:var(--soft);color:var(--text)}
     .breadcrumb span{color:var(--muted)}
-    .topbar{height:72px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--bg)}
+    .topbar{height:72px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(16px)}
     .search{position:relative;width:min(520px,55vw)}
     .search svg{position:absolute;left:12px;top:11px;width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:1.8}
-    .search input{width:100%;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 12px 0 40px;outline:none;background:var(--panel);color:var(--text)}
-    .search input:focus{border-color:var(--accent)}
+    .search input{width:100%;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 12px 0 40px;outline:none;background:var(--panel);color:var(--text);box-shadow:0 1px 2px rgba(20,25,40,.025);transition:border-color .16s,box-shadow .16s}
+    .search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
     .top-actions{margin-left:auto;display:flex;gap:6px}
-    .icon-button{width:36px;height:36px;border:0;border-radius:9px;display:grid;place-items:center;background:none;cursor:pointer}
-    .icon-button:hover{background:var(--soft)}
+    .icon-button{width:36px;height:36px;border:0;border-radius:9px;display:grid;place-items:center;background:none;color:var(--muted);cursor:pointer;transition:background .16s,color .16s}
+    .icon-button:hover{background:var(--soft);color:var(--text)}
     .icon-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}
-    .content{flex:1;overflow:auto;padding:18px 24px 36px}
+    .content{flex:1;overflow:auto;padding:18px 24px 36px;background:radial-gradient(ellipse at 88% 0%,color-mix(in srgb,var(--accent-soft) 46%,transparent),transparent 40%),var(--bg)}
     .heading{height:76px;display:flex;align-items:center;justify-content:space-between}
-    .heading h1{margin:0;font-size:26px;letter-spacing:-.5px}
+    .heading h1{margin:0;font-size:26px;font-weight:730;letter-spacing:-.6px}
     .heading p{margin:6px 0 0;color:var(--muted);font-size:12px}
     .view-switch{height:36px;display:flex;padding:3px;border:1px solid var(--line);border-radius:9px;background:var(--panel)}
     .view-switch button{width:30px;height:28px;border:0;border-radius:7px;display:grid;place-items:center;background:none;cursor:pointer}
     .view-switch button.active{background:var(--soft);color:var(--accent)}
     .view-switch svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-    .card{height:190px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel);cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s}
-    .card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#d7d9e0}
-    .preview{height:126px;display:grid;place-items:center;background:var(--soft)}
-    .folder-icon{width:62px;height:62px;display:grid;place-items:center;border-radius:16px;background:linear-gradient(145deg,#a99bd4,#8674b7);color:#fff}
-    .folder-icon svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.6}
+    .card{height:190px;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--panel);cursor:pointer;box-shadow:0 1px 2px rgba(24,30,46,.025);transition:transform .18s,box-shadow .18s,border-color .18s}
+    .card:hover{transform:translateY(-3px);box-shadow:var(--shadow-card);border-color:color-mix(in srgb,var(--accent) 25%,var(--line))}
+    .preview{height:126px;display:grid;place-items:center;background:linear-gradient(145deg,var(--soft),var(--panel))}
+    .file-icon{width:62px;height:62px;display:grid;place-items:center;border-radius:16px;background:var(--icon-bg);color:var(--icon-ink);transition:transform .18s ease,background .18s ease}
+    .file-icon svg{width:31px;height:31px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+    .file-icon-folder{--icon-ink:#9b6c06;--icon-bg:#fff0bd}
+    .file-icon-html{--icon-ink:#aa7300;--icon-bg:#fff1cc}
+    .file-icon-document{--icon-ink:#5573a8;--icon-bg:#e9f0ff}
+    .file-icon-image{--icon-ink:#4e8a68;--icon-bg:#e5f4e9}
+    .file-icon-video{--icon-ink:#b25e54;--icon-bg:#ffebe7}
+    .file-icon-audio{--icon-ink:#8061a8;--icon-bg:#f1e9fa}
+    .file-icon-archive{--icon-ink:#7b6c49;--icon-bg:#f3eedf}
+    .file-icon-code{--icon-ink:#397f87;--icon-bg:#e2f4f3}
+    .file-icon-other{--icon-ink:#6d7585;--icon-bg:#edf0f4}
+    [data-theme="dark"] .file-icon-folder{--icon-ink:#f2c34d;--icon-bg:#3d321a}
+    [data-theme="dark"] .file-icon-html{--icon-ink:#efbc42;--icon-bg:#3b301b}
+    [data-theme="dark"] .file-icon-document{--icon-ink:#9eb8ef;--icon-bg:#252f43}
+    [data-theme="dark"] .file-icon-image{--icon-ink:#94d4a9;--icon-bg:#20372a}
+    [data-theme="dark"] .file-icon-video{--icon-ink:#f0a197;--icon-bg:#422724}
+    [data-theme="dark"] .file-icon-audio{--icon-ink:#c6a5ed;--icon-bg:#342943}
+    [data-theme="dark"] .file-icon-archive{--icon-ink:#d1c298;--icon-bg:#373326}
+    [data-theme="dark"] .file-icon-code{--icon-ink:#8bd1d2;--icon-bg:#20383a}
+    [data-theme="dark"] .file-icon-other{--icon-ink:#b2b9c7;--icon-bg:#292e39}
+    .tree-icon{width:18px;height:18px;flex:none;display:grid;place-items:center;color:var(--icon-ink)}
+    .tree-icon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
     .card-info{height:64px;display:flex;align-items:center;gap:9px;padding:10px 12px}
-    .file-dot{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;background:var(--soft)}
-    .file-dot svg{width:17px;height:17px;fill:none;stroke:var(--muted);stroke-width:1.8}
+    .file-dot{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;background:var(--icon-bg);color:var(--icon-ink)}
+    .file-dot svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
     .card-text{min-width:0}
     .card-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700}
     .card-meta{display:block;margin-top:4px;color:var(--muted);font-size:11px}
@@ -138,13 +190,17 @@
     .list .card{height:58px;display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;border:0;border-bottom:1px solid var(--line);border-radius:0}
     .list .card:hover{transform:none;box-shadow:none;background:var(--panel)}
     .list .preview{grid-column:1;grid-row:1;width:64px;height:58px;background:none}
-    .list .folder-icon{width:38px;height:38px;border-radius:9px}
-    .list .folder-icon svg{width:20px;height:20px}
+    .list .file-icon{width:38px;height:38px;border-radius:9px}
+    .list .file-icon svg{width:20px;height:20px}
     .list .card-info{grid-column:2;grid-row:1;min-width:0;height:58px;margin-left:0}
     .list .file-dot{display:none}
     .empty{grid-column:1/-1;height:320px;display:grid;place-items:center;text-align:center;color:var(--muted)}
     .empty strong{display:block;margin-bottom:6px;color:var(--text)}
     .mobile-menu{display:none}
+    .language-toggle{height:34px;min-width:38px;padding:0 9px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--muted);font-size:11px;font-weight:750;cursor:pointer;transition:background .16s,border-color .16s,color .16s}
+    .language-toggle:hover{border-color:var(--accent);color:var(--accent)}
+    .view-switch,.icon-button,.card,.sidebar{transition-property:background-color,border-color,color,box-shadow,transform,width}
+    .app,.details-panel{transition:grid-template-columns .22s ease,background-color .2s ease}
     @media(max-width:768px){
       body{overflow:auto}
       .app{grid-template-columns:1fr}
@@ -182,47 +238,53 @@
       <nav class="nav" id="nav">
         <button class="active" id="allFilesButton">
           <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
-          <span class="nav-text">所有文件</span>
+          <span class="nav-text" data-i18n="allFiles">所有文件</span>
         </button>
-        <div class="nav-label">文件夹</div>
+        <div class="nav-label" data-i18n="folders">文件夹</div>
         <div class="folder-tree" id="folderTree"></div>
       </nav>
+      <footer class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span class="footer-label" data-i18n="staticIndex">静态索引</span>
+        <span class="version">v1.0.2</span>
+      </footer>
     </aside>
     <div class="sidebar-scrim" id="sidebarScrim"></div>
 
     <main class="main">
       <header class="topbar">
-        <button class="icon-button mobile-menu" id="mobileMenu" aria-label="打开菜单">
+        <button class="icon-button mobile-menu" id="mobileMenu" aria-label="打开菜单" data-i18n-aria="openMenu">
           <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
         <div class="search">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 5 5"/></svg>
-          <input id="search" type="search" placeholder="搜索文件和文件夹…" aria-label="搜索文件">
+          <input id="search" type="search" placeholder="搜索文件和文件夹…" aria-label="搜索文件" data-i18n-placeholder="search" data-i18n-aria="search">
         </div>
         <div class="top-actions">
-          <button class="icon-button" id="theme" aria-label="切换主题">
+          <button class="language-toggle" id="languageToggle" aria-label="切换语言" data-i18n-aria="switchLanguage">EN</button>
+          <button class="icon-button" id="theme" aria-label="切换主题" data-i18n-aria="switchTheme">
             <svg viewBox="0 0 24 24"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z"/></svg>
           </button>
         </div>
       </header>
 
       <section class="content">
-        <nav class="breadcrumb" id="breadcrumb"></nav>
+        <nav class="breadcrumb" id="breadcrumb" aria-label="路径导航" data-i18n-aria="pathNavigation"></nav>
         <div class="heading">
           <div><h1 id="title">所有文件</h1><p id="count">0 个项目</p></div>
-          <div class="view-switch" aria-label="切换视图">
-            <button class="active" data-view="grid" aria-label="网格视图"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
-            <button data-view="list" aria-label="列表视图"><svg viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
+          <div class="view-switch" aria-label="切换视图" data-i18n-aria="viewSwitch">
+            <button class="active" data-view="grid" aria-label="网格视图" data-i18n-aria="gridView"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+            <button data-view="list" aria-label="列表视图" data-i18n-aria="listView"><svg viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
           </div>
         </div>
         <div class="grid" id="files"></div>
       </section>
     </main>
-    <aside class="details-panel" id="detailsPanel" aria-label="详细信息">
-      <div class="details-resizer" id="detailsResizer" title="拖动调整详细信息宽度"></div>
+    <aside class="details-panel" id="detailsPanel" aria-label="详细信息" data-i18n-aria="details">
+      <div class="details-resizer" id="detailsResizer" title="拖动调整详细信息宽度" data-i18n-title="resizeDetails"></div>
       <header class="details-header">
-        <h2>详细信息</h2>
-        <button class="icon-button" id="closeDetails" aria-label="关闭详细信息">
+        <h2 data-i18n="details">详细信息</h2>
+        <button class="icon-button" id="closeDetails" aria-label="关闭详细信息" data-i18n-aria="closeDetails">
           <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
         </button>
       </header>
@@ -233,9 +295,108 @@
   <script src="files-manifest.js"></script>
   <script>
     const root = window.FILE_MANIFEST || {name:"所有文件",type:"folder",children:[]};
+    const messages = {
+      zh:{
+        allFiles:"所有文件",folders:"文件夹",staticIndex:"静态索引",search:"搜索文件和文件夹…",
+        openMenu:"打开菜单",switchLanguage:"切换语言",switchTheme:"切换主题",pathNavigation:"路径导航",
+        viewSwitch:"切换视图",gridView:"网格视图",listView:"列表视图",details:"详细信息",
+        closeDetails:"关闭详细信息",resizeDetails:"拖动调整详细信息宽度",
+        collapseSidebar:"收起侧边栏",expandSidebar:"展开侧边栏",
+        searchResults:"搜索结果",items:"个项目",noResultsTitle:"没有找到文件",
+        noResultsBody:"请尝试其他搜索关键词",expand:"展开",collapse:"收起",basicInfo:"基本信息",
+        properties:"属性",type:"类型",size:"大小",modified:"修改时间",location:"位置",
+        readOnly:"只读",hidden:"隐藏",yes:"是",no:"否",folder:"文件夹",file:"文件",
+        html:"HTML 网站",document:"文档",image:"图片",video:"视频",audio:"音频",
+        archive:"压缩文件",code:"代码",other:"其他"
+      },
+      en:{
+        allFiles:"All files",folders:"Folders",staticIndex:"Static index",search:"Search files and folders…",
+        openMenu:"Open menu",switchLanguage:"Switch language",switchTheme:"Switch theme",pathNavigation:"Path navigation",
+        viewSwitch:"Change view",gridView:"Grid view",listView:"List view",details:"Details",
+        closeDetails:"Close details",resizeDetails:"Drag to resize details pane",
+        collapseSidebar:"Collapse sidebar",expandSidebar:"Expand sidebar",
+        searchResults:"Search results",items:"items",noResultsTitle:"No files found",
+        noResultsBody:"Try a different search term",expand:"Expand",collapse:"Collapse",basicInfo:"General",
+        properties:"Properties",type:"Type",size:"Size",modified:"Modified",location:"Location",
+        readOnly:"Read-only",hidden:"Hidden",yes:"Yes",no:"No",folder:"Folder",file:"File",
+        html:"HTML website",document:"Document",image:"Image",video:"Video",audio:"Audio",
+        archive:"Archive",code:"Code",other:"Other"
+      }
+    };
+    const getPreference=key=>{try{return localStorage.getItem(key)}catch{return null}};
+    const savePreference=(key,value)=>{try{localStorage.setItem(key,value)}catch{}};
+    let language=document.documentElement.dataset.language||"zh";
+    let selectedItem=null;
 
-    const folderIcon = '<span class="folder-icon"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/></svg></span>';
-    const fileIcon = '<span class="folder-icon"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/></svg></span>';
+    function t(key){return messages[language][key]||messages.en[key]||key}
+
+    function applyLanguage(){
+      document.documentElement.dataset.language=language;
+      document.documentElement.lang=language==="zh"?"zh-CN":"en";
+      document.querySelectorAll("[data-i18n]").forEach(element=>element.textContent=t(element.dataset.i18n));
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(element=>element.placeholder=t(element.dataset.i18nPlaceholder));
+      document.querySelectorAll("[data-i18n-aria]").forEach(element=>element.setAttribute("aria-label",t(element.dataset.i18nAria)));
+      document.querySelectorAll("[data-i18n-title]").forEach(element=>element.title=t(element.dataset.i18nTitle));
+      document.querySelector("#languageToggle").textContent=language==="zh"?"EN":"中";
+      document.querySelector("#languageToggle").title=t("switchLanguage");
+      const sidebarLabel=document.body.classList.contains("sidebar-collapsed")?t("expandSidebar"):t("collapseSidebar");
+      document.querySelector("#sidebarToggle").title=sidebarLabel;
+      document.querySelector("#sidebarToggle").setAttribute("aria-label",sidebarLabel);
+      document.title=language==="zh"?"WebFile Explorer":"WebFile Explorer";
+      render();
+      if(selectedItem&&document.querySelector(".app").classList.contains("details-open")&&!matchMedia("(max-width: 768px)").matches)showDetails(selectedItem);
+    }
+
+    function setLanguage(nextLanguage,save=true){
+      language=nextLanguage==="en"?"en":"zh";
+      if(save)savePreference("webfile-language",language);
+      applyLanguage();
+    }
+
+    function setTheme(theme,save=true){
+      document.documentElement.dataset.theme=theme;
+      document.querySelector("#theme").innerHTML=theme==="dark"
+        ?'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>'
+        :'<svg viewBox="0 0 24 24"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z"/></svg>';
+      document.querySelector("#theme").title=t("switchTheme");
+      document.querySelector('meta[name="theme-color"]').content=theme==="dark"?"#15140f":"#f7f6f1";
+      if(save)savePreference("webfile-theme",theme);
+    }
+
+    function initializePreferences(){
+      const savedLanguage=getPreference("webfile-language");
+      language=savedLanguage==="zh"||savedLanguage==="en"?savedLanguage:(navigator.language.toLowerCase().startsWith("zh")?"zh":"en");
+      const savedTheme=getPreference("webfile-theme");
+      setTheme(savedTheme==="dark"||savedTheme==="light"?savedTheme:(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),false);
+      applyLanguage();
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change",event=>{
+        if(!getPreference("webfile-theme"))setTheme(event.matches?"dark":"light",false);
+      });
+      window.addEventListener("languagechange",()=>{
+        if(!getPreference("webfile-language"))setLanguage(navigator.language.toLowerCase().startsWith("zh")?"zh":"en",false);
+      });
+    }
+
+    const iconPaths={
+      folder:'<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/>',
+      html:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M8 6.5h.01M11 6.5h.01M8 14l-2 2 2 2M16 14l2 2-2 2m-3-5-2 6"/>',
+      document:'<path d="M6 3h8l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/>',
+      image:'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m4 17 5-5 3 3 3-4 5 6"/>',
+      video:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z"/>',
+      audio:'<path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/>',
+      archive:'<path d="M4 7h16M5 7v13h14V7M3 4h18v3H3z"/><path d="M10 11h4m-2-4v8"/>',
+      code:'<path d="m8 7-5 5 5 5m8-10 5 5-5 5m-2-13-4 16"/>',
+      other:'<path d="M6 3h8l4 4v14H6zM14 3v5h5M9 12h6"/>'
+    };
+    const knownIconTypes=new Set(Object.keys(iconPaths));
+    function iconType(item){
+      const type=item.type==="folder"?"folder":item.fileType||item.type||"other";
+      return knownIconTypes.has(type)?type:"other";
+    }
+    function iconMarkup(type,wrapper="file-icon"){
+      const safeType=knownIconTypes.has(type)?type:"other";
+      return `<span class="${wrapper} file-icon-${safeType}" aria-hidden="true"><svg viewBox="0 0 24 24">${iconPaths[safeType]}</svg></span>`;
+    }
     let currentFolder = root;
     const folderStack = [root];
     const expandedFolders = new Set();
@@ -256,23 +417,41 @@
       const visible=query
         ?flatten(root).filter(item=>item.name.toLowerCase().includes(query))
         :(currentFolder.children||[]).map(item=>({...item,pathKey:[...folderStack.slice(1).map(folder=>folder.name),item.name].join("/")}));
-      document.querySelector("#count").textContent = visible.length + " 个项目";
-      document.querySelector("#title").textContent=query?"搜索结果":currentFolder.name;
+      document.querySelector("#count").textContent = countLabel(visible.length);
+      document.querySelector("#title").textContent=query?t("searchResults"):(currentFolder===root?t("allFiles"):currentFolder.name);
       renderBreadcrumb();
       renderFolderTree();
       document.querySelector("#files").innerHTML = visible.length ? visible.map(item => `
-        <article class="card" data-path="${item.pathKey.replace(/"/g,"&quot;")}" ${item.url ? 'data-url="'+item.url+'"' : ""}>
-          <div class="preview">${item.type === "folder" ? folderIcon : fileIcon}</div>
+        <article class="card" data-path="${escapeHtml(item.pathKey)}" ${item.url ? 'data-url="'+escapeHtml(item.url)+'"' : ""}>
+          <div class="preview">${iconMarkup(iconType(item))}</div>
           <div class="card-info">
-            <span class="file-dot"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5"/></svg></span>
-            <div class="card-text"><span class="card-name">${item.name}</span><span class="card-meta">${query?item.pathKey:(item.meta||((item.children||[]).length+" 个项目"))}</span></div>
+            ${iconMarkup(iconType(item),"file-dot")}
+            <div class="card-text"><span class="card-name">${escapeHtml(item.name)}</span><span class="card-meta">${query?escapeHtml(item.pathKey):item.type==="folder"?countLabel((item.children||[]).length):fileMeta(item)}</span></div>
           </div>
-        </article>`).join("") : '<div class="empty"><div><strong>没有找到文件</strong>请尝试其他搜索关键词</div></div>';
+        </article>`).join("") : `<div class="empty"><div><strong>${t("noResultsTitle")}</strong>${t("noResultsBody")}</div></div>`;
+    }
+
+    function escapeHtml(value){
+      return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+    }
+
+    function fileMeta(item){
+      return `${t(item.fileType||item.type||"other")} · ${item.size||"—"}`;
+    }
+
+    function countLabel(count){
+      return language==="en"?`${count} item${count===1?"":"s"}`:`${count} 个项目`;
+    }
+
+    function formatDate(value){
+      if(!value)return "—";
+      const date=new Date(`${value}T00:00:00`);
+      return Number.isNaN(date.getTime())?value:new Intl.DateTimeFormat(language==="zh"?"zh-CN":"en",{year:"numeric",month:"short",day:"numeric"}).format(date);
     }
 
     function renderFolderTree(){
       const tree=document.querySelector("#folderTree");
-      tree.innerHTML=renderTreeItems(root.children||"");
+      tree.innerHTML=renderTreeItems(root.children||[]);
     }
 
     function renderTreeItems(items,prefix=""){
@@ -282,12 +461,12 @@
         const hasChildren=isFolder&&(item.children||[]).length>0;
         const expanded=expandedFolders.has(pathKey);
         const selected=isFolder&&folderStack[folderStack.length-1]===item&&!document.querySelector("#search").value.trim();
-        return `<div class="tree-node ${expanded?"expanded":""}" data-node-path="${pathKey}">
+        return `<div class="tree-node ${expanded?"expanded":""}" data-node-path="${escapeHtml(pathKey)}">
           <div class="tree-line ${selected?"selected":""}">
-            ${hasChildren?`<button class="tree-expander" type="button" data-toggle-path="${pathKey}" aria-label="${expanded?"收起":"展开"} ${item.name}"><svg viewBox="0 0 16 16"><path d="m5 3 5 5-5 5"/></svg></button>`:'<span class="tree-expander spacer"></span>'}
-            <button class="tree-folder" type="button" data-tree-path="${pathKey}">
-              ${isFolder?'<svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/></svg>':'<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5"/></svg>'}
-              <span>${item.name}</span>
+            ${hasChildren?`<button class="tree-expander" type="button" data-toggle-path="${escapeHtml(pathKey)}" aria-label="${expanded?t("collapse"):t("expand")} ${escapeHtml(item.name)}"><svg viewBox="0 0 16 16"><path d="m5 3 5 5-5 5"/></svg></button>`:'<span class="tree-expander spacer"></span>'}
+            <button class="tree-folder" type="button" data-tree-path="${escapeHtml(pathKey)}">
+              ${iconMarkup(iconType(item),"tree-icon")}
+              <span>${escapeHtml(item.name)}</span>
             </button>
           </div>
           ${hasChildren?`<div class="tree-children">${renderTreeItems(item.children,pathKey)}</div>`:""}
@@ -298,7 +477,7 @@
     function renderBreadcrumb(){
       const breadcrumb=document.querySelector("#breadcrumb");
       breadcrumb.innerHTML=folderStack.map((folder,index)=>`
-        ${index?'<span>›</span>':''}<button data-level="${index}">${folder.name}</button>
+        ${index?'<span>›</span>':''}<button data-level="${index}">${index===0?t("allFiles"):escapeHtml(folder.name)}</button>
       `).join("");
     }
 
@@ -325,34 +504,35 @@
         if(item.url)window.open(new URL(item.url,location.href).href,"_blank","noopener");
         return;
       }
+      selectedItem=item;
       document.querySelector(".app").classList.add("details-open");
       document.querySelector("#detailsBody").innerHTML=`
-        <div class="details-preview">${item.type==="folder"?folderIcon:fileIcon}</div>
-        <p class="details-name">${item.name}</p>
+        <div class="details-preview">${iconMarkup(iconType(item))}</div>
+        <p class="details-name">${escapeHtml(item.name)}</p>
         <div class="detail-tree">
           <section class="tree-group open">
             <button class="tree-toggle" type="button" aria-expanded="true">
               <span class="tree-arrow"><svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5"/></svg></span>
-              <span>基本信息</span>
+              <span>${t("basicInfo")}</span>
             </button>
             <div class="tree-content">
               <div class="tree-content-inner">
-                <div class="tree-row"><span class="tree-row-label">类型</span><span class="tree-row-value">${item.type==="folder"?"文件夹":item.type==="html"?"HTML 网站":item.category==="document"?"文档":item.category==="image"?"图片":"文件"}</span></div>
-                <div class="tree-row"><span class="tree-row-label">大小</span><span class="tree-row-value">${item.size||"—"}</span></div>
-                <div class="tree-row"><span class="tree-row-label">修改时间</span><span class="tree-row-value">${item.modified||"—"}</span></div>
-                ${item.url?'<div class="tree-row"><span class="tree-row-label">位置</span><span class="tree-row-value">'+item.url+'</span></div>':""}
+                <div class="tree-row"><span class="tree-row-label">${t("type")}</span><span class="tree-row-value">${t(item.type==="folder"?"folder":item.fileType||item.type||"other")}</span></div>
+                <div class="tree-row"><span class="tree-row-label">${t("size")}</span><span class="tree-row-value">${item.size||"—"}</span></div>
+                <div class="tree-row"><span class="tree-row-label">${t("modified")}</span><span class="tree-row-value">${formatDate(item.modified)}</span></div>
+                ${item.url?`<div class="tree-row"><span class="tree-row-label">${t("location")}</span><span class="tree-row-value">${escapeHtml(item.url)}</span></div>`:""}
               </div>
             </div>
           </section>
           <section class="tree-group">
             <button class="tree-toggle" type="button" aria-expanded="false">
               <span class="tree-arrow"><svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5"/></svg></span>
-              <span>属性</span>
+              <span>${t("properties")}</span>
             </button>
             <div class="tree-content">
               <div class="tree-content-inner">
-                <div class="tree-row"><span class="tree-row-label">只读</span><span class="tree-row-value">否</span></div>
-                <div class="tree-row"><span class="tree-row-label">隐藏</span><span class="tree-row-value">否</span></div>
+                <div class="tree-row"><span class="tree-row-label">${t("readOnly")}</span><span class="tree-row-value">${t("no")}</span></div>
+                <div class="tree-row"><span class="tree-row-label">${t("hidden")}</span><span class="tree-row-value">${t("no")}</span></div>
               </div>
             </div>
           </section>
@@ -455,11 +635,6 @@
         document.querySelector("#files").className=button.dataset.view;
       });
     });
-    document.querySelector("#theme").addEventListener("click",()=>{
-      const dark=document.documentElement.dataset.theme==="dark";
-      document.documentElement.dataset.theme=dark?"light":"dark";
-      localStorage.setItem("webfile-theme",dark?"light":"dark");
-    });
     document.querySelector("#mobileMenu").addEventListener("click",()=>{
       document.body.classList.remove("sidebar-collapsed");
       const open=document.querySelector("#sidebar").classList.toggle("open");
@@ -475,13 +650,16 @@
         document.querySelector("#sidebar").classList.remove("open");
         document.querySelector("#sidebarScrim").classList.remove("open");
       }else{
-        document.body.classList.toggle("sidebar-collapsed");
+      document.body.classList.toggle("sidebar-collapsed");
+      const label=document.body.classList.contains("sidebar-collapsed")?t("expandSidebar"):t("collapseSidebar");
+      document.querySelector("#sidebarToggle").title=label;
+      document.querySelector("#sidebarToggle").setAttribute("aria-label",label);
       }
     });
 
-    const saved=localStorage.getItem("webfile-theme");
-    if(saved)document.documentElement.dataset.theme=saved;
-    render();
+    document.querySelector("#languageToggle").addEventListener("click",()=>setLanguage(language==="zh"?"en":"zh"));
+    document.querySelector("#theme").addEventListener("click",()=>setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark"));
+    initializePreferences();
   </script>
 </body>
 </html>

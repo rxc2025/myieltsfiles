@@ -323,7 +323,7 @@
       <footer class="sidebar-footer">
         <span class="status-dot"></span>
         <span class="footer-label" data-i18n="staticIndex">静态索引</span>
-        <span class="version">v1.3.0</span>
+        <span class="version">v1.4.0</span>
       </footer>
     </aside>
     <div class="sidebar-scrim" id="sidebarScrim"></div>
@@ -406,8 +406,10 @@
     };
     const getPreference=key=>{try{return localStorage.getItem(key)}catch{return null}};
     const savePreference=(key,value)=>{try{localStorage.setItem(key,value)}catch{}};
+    const clearSavedDisplayOrders=()=>{try{localStorage.removeItem("webfile-display-orders")}catch{}};
     let language=document.documentElement.dataset.language||"zh";
     let selectedItem=null;
+    let displayOrders={};
     let recentlyMovedPaths=new Set();
     let draggingPath=null;
     let dragInsertAfter=false;
@@ -449,6 +451,7 @@
     }
 
     function initializePreferences(){
+      clearSavedDisplayOrders();
       const savedLanguage=getPreference("webfile-language");
       language=savedLanguage==="zh"||savedLanguage==="en"?savedLanguage:(navigator.language.toLowerCase().startsWith("zh")?"zh":"en");
       const savedTheme=getPreference("webfile-theme");
@@ -534,15 +537,8 @@
         </article>`).join("") : `<div class="empty"><div><strong>${t("noResultsTitle")}</strong>${t("noResultsBody")}</div></div>`;
     }
 
-    function readDisplayOrders(){
-        try{
-          const saved=JSON.parse(getPreference("webfile-display-orders")||"{}");
-          return saved&&typeof saved==="object"&&!Array.isArray(saved)?saved:{};
-        }catch{return {}}
-    }
-
     function applyDisplayOrder(items,parentPath){
-        const paths=readDisplayOrders()[parentPath];
+        const paths=displayOrders[parentPath];
         if(!Array.isArray(paths))return items;
         const rank=new Map(paths.map((path,index)=>[path,index]));
         return [...items].sort((a,b)=>(rank.get(a.key)??Number.MAX_SAFE_INTEGER)-(rank.get(b.key)??Number.MAX_SAFE_INTEGER));
@@ -560,9 +556,7 @@
         const targetIndex=keys.indexOf(targetKey);
         keys.splice(targetIndex+(after?1:0),0,moving);
         if(keys.every((key,index)=>key===originalOrder[index]))return false;
-        const orders=readDisplayOrders();
-        orders[parentPath]=keys;
-        savePreference("webfile-display-orders",JSON.stringify(orders));
+        displayOrders[parentPath]=keys;
         recentlyMovedPaths=new Set([sourceKey,targetKey]);
         ignoreCardClickUntil=Date.now()+350;
         render();

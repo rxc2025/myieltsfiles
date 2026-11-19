@@ -3,74 +3,485 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f3f6fa">
-  <title>雅思学习资料</title>
-  <!-- <link rel="icon" href="./favicon.svg" type="image/svg+xml"> -->
-  <link rel="stylesheet" href="./styles.css">
+  <meta name="theme-color" content="#f4f5f7">
+  <title>WebFile Explorer</title>
+  <style>
+    :root {
+      --bg:#f4f5f7;
+      --panel:#fff;
+      --soft:#eceef2;
+      --text:#20232a;
+      --muted:#7b8090;
+      --line:#e4e6eb;
+      --accent:#7465c9;
+      --accent-soft:#eeebfb;
+      --shadow:0 10px 30px rgba(31,35,48,.08);
+    }
+    [data-theme="dark"] {
+      --bg:#101217;
+      --panel:#181b22;
+      --soft:#22262f;
+      --text:#f3f4f7;
+      --muted:#a2a6b2;
+      --line:#292d37;
+      --accent:#9b8be2;
+      --accent-soft:#29243a;
+      --shadow:0 14px 34px rgba(0,0,0,.24);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-width:320px;height:100vh;overflow:hidden;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--text);background:var(--bg)}
+    button,input{font:inherit}
+    button{color:inherit}
+    .app{height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr)}
+    .app.details-open{grid-template-columns:220px minmax(0,1fr) var(--details-width,300px)}
+    .sidebar{display:flex;flex-direction:column;padding:16px 12px;border-right:1px solid var(--line);background:var(--panel)}
+    .brand{display:flex;align-items:center;gap:10px;height:48px;padding:0 8px;font-weight:750}
+    .brand-name{flex:1}
+    .sidebar-toggle{width:30px;height:30px;flex:none}
+    .sidebar-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;transition:transform .18s ease}
+    .sidebar-collapsed .sidebar-toggle svg{transform:rotate(180deg)}
+    .brand-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:11px;background:var(--accent);color:#fff}
+    .brand-icon svg{width:20px;height:20px}
+    .nav{display:flex;flex-direction:column;gap:4px;margin-top:12px}
+    .nav-label{margin:18px 10px 6px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em}
+    .nav button{height:40px;border:0;border-radius:9px;display:flex;align-items:center;gap:10px;padding:0 10px;background:none;cursor:pointer;text-align:left;font-size:13px}
+    .nav button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}
+    .nav button:hover{background:var(--soft)}
+    .nav button.active{background:var(--accent-soft);color:var(--accent);font-weight:700}
+    .folder-tree{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+    .tree-node{min-width:0}
+    .tree-line{height:34px;display:flex;align-items:center;gap:2px;padding-right:6px;border-radius:8px}
+    .tree-line:hover{background:var(--soft)}
+    .tree-line.selected{background:var(--accent-soft);color:var(--accent)}
+    .tree-expander{width:28px;height:28px;flex:none;border:0;border-radius:6px;display:grid;place-items:center;background:none;color:var(--muted);cursor:pointer}
+    .tree-expander:hover{background:var(--line)}
+    .tree-expander svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .16s}
+    .tree-node.expanded>.tree-line .tree-expander svg{transform:rotate(90deg)}
+    .tree-expander.spacer{cursor:default}
+    .tree-folder{min-width:0;flex:1;height:32px;border:0;padding:0 4px;display:flex;align-items:center;gap:8px;background:none;color:inherit;cursor:pointer;text-align:left;font-size:13px}
+    .tree-folder svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8}
+    .tree-folder span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .tree-children{display:none;margin-left:14px;padding-left:9px;border-left:1px solid var(--line)}
+    .tree-node.expanded>.tree-children{display:block}
+    .sidebar-scrim{display:none}
+    .sidebar-collapsed .app{grid-template-columns:64px minmax(0,1fr)}
+    .sidebar-collapsed .app.details-open{grid-template-columns:64px minmax(0,1fr) var(--details-width,300px)}
+    .sidebar-collapsed .brand{gap:0;padding:0;justify-content:center}
+    .sidebar-collapsed .brand-name,.sidebar-collapsed .nav-label,.sidebar-collapsed #allFilesButton .nav-text,.sidebar-collapsed .tree-folder span{display:none}
+    .sidebar-collapsed .nav button{justify-content:center;padding:0}
+    .sidebar-collapsed .tree-children{margin-left:0;padding-left:0;border-left:0}
+    .sidebar-collapsed .tree-line{justify-content:center;padding:0}
+    .sidebar-collapsed .tree-expander{display:none}
+    .sidebar-collapsed .tree-folder{justify-content:center;padding:0}
+    .main{min-width:0;display:flex;flex-direction:column}
+    .details-panel{display:none;width:100%;min-width:240px;max-width:520px;border-left:1px solid var(--line);background:var(--panel);position:relative;overflow:hidden}
+    .app.details-open .details-panel{display:flex;flex-direction:column}
+    .details-resizer{position:absolute;z-index:5;left:-4px;top:0;width:8px;height:100%;cursor:col-resize}
+    .details-resizer::after{content:"";position:absolute;left:3px;top:0;width:1px;height:100%;background:transparent;transition:background .15s}
+    .details-resizer:hover::after,.details-resizer.dragging::after{background:var(--accent)}
+    .details-header{height72px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line)}
+    .details-header h2{margin:0;font-size14px}
+    .details-body{padding:18px;overflow-x:hidden;overflow-y:auto}
+    .details-preview{height150px;display:grid;place-items:center;margin-bottom16px;border-radius12px;background:var(--soft)}
+    .details-preview .folder-icon{width72px;height72px}
+    .details-name{margin:0 0 14px;font-size15px;font-weight750;word-break:break-word}
+    .detail-row{display:grid;grid-template-columns:68px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px}
+    .detail-row span:first-child{color:var(--muted)}
+    .detail-row span:last-child{min-width:0;text-align:right;overflow-wrap:anywhere;word-break:break-word;line-height:1.45}
+    .detail-tree{margin-top:18px;border-top:1px solid var(--line)}
+    .tree-group{border-bottom:1px solid var(--line)}
+    .tree-toggle{width:100%;height:42px;border:0;padding:0 4px;display:flex;align-items:center;gap:8px;background:none;color:var(--text);cursor:pointer;text-align:left;font-size:12.5px;font-weight:700}
+    .tree-toggle:hover{background:var(--soft)}
+    .tree-arrow{width:16px;height:16px;display:grid;place-items:center;flex:none;color:var(--muted);transition:transform .18s ease}
+    .tree-arrow svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .tree-group.open>.tree-toggle .tree-arrow{transform:rotate(90deg)}
+    .tree-content{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .22s ease,opacity .16s ease}
+    .tree-group.open>.tree-content{grid-template-rows:1fr;opacity:1}
+    .tree-content-inner{min-height:0;overflow:hidden}
+    .tree-row{min-height:36px;display:grid;grid-template-columns:68px minmax(0,1fr);align-items:start;gap:10px;padding:8px 4px 8px 24px;font-size12px}
+    .tree-row-label{color:var(--muted)}
+    .tree-row-value{min-width:0;text-align:left;overflow-wrap:anywhere;word-break:break-word;line-height:1.45}
+    .breadcrumb{height24px;margin-bottom:8px;display:flex;align-items:center;gap4px;color:var(--muted);font-size12px}
+    .breadcrumb button{border:0;border-radius6px;padding4px 6px;background:none;color:inherit;cursor:pointer}
+    .breadcrumb button:hover{background:var(--soft);color:var(--text)}
+    .breadcrumb span{color:var(--muted)}
+    .topbar{height:72px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--bg)}
+    .search{position:relative;width:min(520px,55vw)}
+    .search svg{position:absolute;left:12px;top:11px;width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:1.8}
+    .search input{width:100%;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 12px 0 40px;outline:none;background:var(--panel);color:var(--text)}
+    .search input:focus{border-color:var(--accent)}
+    .top-actions{margin-left:auto;display:flex;gap:6px}
+    .icon-button{width:36px;height:36px;border:0;border-radius:9px;display:grid;place-items:center;background:none;cursor:pointer}
+    .icon-button:hover{background:var(--soft)}
+    .icon-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8}
+    .content{flex:1;overflow:auto;padding:18px 24px 36px}
+    .heading{height:76px;display:flex;align-items:center;justify-content:space-between}
+    .heading h1{margin:0;font-size:26px;letter-spacing:-.5px}
+    .heading p{margin:6px 0 0;color:var(--muted);font-size:12px}
+    .view-switch{height:36px;display:flex;padding:3px;border:1px solid var(--line);border-radius:9px;background:var(--panel)}
+    .view-switch button{width:30px;height:28px;border:0;border-radius:7px;display:grid;place-items:center;background:none;cursor:pointer}
+    .view-switch button.active{background:var(--soft);color:var(--accent)}
+    .view-switch svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+    .card{height:190px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel);cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s}
+    .card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#d7d9e0}
+    .preview{height:126px;display:grid;place-items:center;background:var(--soft)}
+    .folder-icon{width:62px;height:62px;display:grid;place-items:center;border-radius:16px;background:linear-gradient(145deg,#a99bd4,#8674b7);color:#fff}
+    .folder-icon svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.6}
+    .card-info{height:64px;display:flex;align-items:center;gap:9px;padding:10px 12px}
+    .file-dot{width:34px;height:34px;display:grid;place-items:center;border-radius:9px;background:var(--soft)}
+    .file-dot svg{width:17px;height:17px;fill:none;stroke:var(--muted);stroke-width:1.8}
+    .card-text{min-width:0}
+    .card-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700}
+    .card-meta{display:block;margin-top:4px;color:var(--muted);font-size:11px}
+    .list{display:flex;flex-direction:column}
+    .list .card{height:58px;display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;border:0;border-bottom:1px solid var(--line);border-radius:0}
+    .list .card:hover{transform:none;box-shadow:none;background:var(--panel)}
+    .list .preview{grid-column:1;grid-row:1;width:64px;height:58px;background:none}
+    .list .folder-icon{width:38px;height:38px;border-radius:9px}
+    .list .folder-icon svg{width:20px;height:20px}
+    .list .card-info{grid-column:2;grid-row:1;min-width:0;height:58px;margin-left:0}
+    .list .file-dot{display:none}
+    .empty{grid-column:1/-1;height:320px;display:grid;place-items:center;text-align:center;color:var(--muted)}
+    .empty strong{display:block;margin-bottom:6px;color:var(--text)}
+    .mobile-menu{display:none}
+    @media(max-width:768px){
+      body{overflow:auto}
+      .app{grid-template-columns:1fr}
+      .app.details-open{grid-template-columns:1fr}
+      .details-panel{display:none!important}
+      .details-resizer{display:none}
+      .sidebar{position:fixed;z-index:20;left:0;top:0;width:220px;height:100vh;transform:translateX(-100%);box-shadow:var(--shadow);transition:transform .2s}
+      .sidebar.open{transform:translateX(0)}
+      .sidebar-scrim.open{display:block;position:fixed;z-index:19;inset:0;background:rgba(15,18,24,.32)}
+      .sidebar-collapsed .app,.sidebar-collapsed .app.details-open{grid-template-columns:1fr}
+      .topbar{height:64px;padding:0 14px}
+      .mobile-menu{display:grid}
+      .search{width:auto;flex:1}
+      .content{padding:12px 14px 28px}
+      .heading{height:76px}
+      .heading h1{font-size:22px}
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      .card{height:170px}
+      .preview{height:106px}
+    }
+  </style>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">NB</div>
-        <div><span>材料导航中心</span></div>
+        <span class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/></svg>
+        </span>
+        <span class="brand-name">WebFile</span>
+        <button class="icon-button sidebar-toggle" id="sidebarToggle" aria-label="收起侧边栏" title="收起侧边栏">
+          <svg viewBox="0 0 24 24"><path d="m14 6-6 6 6 6"/></svg>
+        </button>
       </div>
-      <div class="nav-caption">快速访问</div>
-      <button class="nav-item active" data-view="all"><span class="nav-icon">▦</span><span>全部材料</span><span class="nav-count" id="all-count">0</span></button>
-      <button class="nav-item" data-view="recent"><span class="nav-icon">◷</span><span>最近更新</span></button>
-      <div class="nav-caption folder-caption">文件夹 <button id="refresh-button" class="icon-button" title="刷新材料列表" aria-label="刷新材料列表">↻</button></div>
-      <nav id="folder-tree" class="folder-tree" aria-label="材料文件夹"></nav>
-      <div class="sidebar-bottom">
-        <div class="storage-icon">▤</div>
-        <div><strong>本地材料库</strong><span id="folder-count">正在读取…</span></div>
-        <span class="online-dot" title="可用"></span>
-      </div>
+      <nav class="nav" id="nav">
+        <button class="active" id="allFilesButton">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+          <span class="nav-text">所有文件</span>
+        </button>
+        <div class="nav-label">文件夹</div>
+        <div class="folder-tree" id="folderTree"></div>
+      </nav>
     </aside>
+    <div class="sidebar-scrim" id="sidebarScrim"></div>
 
     <main class="main">
       <header class="topbar">
-        <div class="breadcrumbs" id="breadcrumbs" aria-label="当前位置"></div>
-        <label class="search-box">
-          <span aria-hidden="true">⌕</span>
-          <input id="search-input" type="search" placeholder="搜索文件或内容" autocomplete="off">
-          <kbd>⌘ K</kbd>
-        </label>
-      </header>
-      <section class="content">
-        <div class="page-heading">
-          <div>
-            <div class="eyebrow">MATERIALS LIBRARY</div>
-            <h1 id="page-title">全部材料</h1>
-            <p id="page-subtitle">浏览并打开 materials 文件夹中的学习资料</p>
-          </div>
-          <button id="view-toggle" class="view-toggle" title="切换显示方式" aria-label="切换显示方式"><span>☷</span><span>详细信息</span></button>
+        <button class="icon-button mobile-menu" id="mobileMenu" aria-label="打开菜单">
+          <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 5 5"/></svg>
+          <input id="search" type="search" placeholder="搜索文件和文件夹…" aria-label="搜索文件">
         </div>
-        <div class="type-chips" id="type-chips" aria-label="按类型筛选"></div>
-        <div class="workspace">
-          <section class="file-area">
-            <div class="list-toolbar">
-              <span id="result-count">正在读取材料…</span>
-              <span class="sort-label">名称 <span>↑</span></span>
-            </div>
-            <div id="file-list" class="file-list" role="list"></div>
-            <div id="empty-state" class="empty-state" hidden>
-              <!-- <div class="empty-icon">⌕</div>
-              <strong>没有找到匹配的材料</strong>
-              <span>换个关键词，或选择其他文件夹试试</span> -->
+        <div class="top-actions">
+          <button class="icon-button" id="theme" aria-label="切换主题">
+            <svg viewBox="0 0 24 24"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="content">
+        <nav class="breadcrumb" id="breadcrumb"></nav>
+        <div class="heading">
+          <div><h1 id="title">所有文件</h1><p id="count">0 个项目</p></div>
+          <div class="view-switch" aria-label="切换视图">
+            <button class="active" data-view="grid" aria-label="网格视图"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+            <button data-view="list" aria-label="列表视图"><svg viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
+          </div>
+        </div>
+        <div class="grid" id="files"></div>
+      </section>
+    </main>
+    <aside class="details-panel" id="detailsPanel" aria-label="详细信息">
+      <div class="details-resizer" id="detailsResizer" title="拖动调整详细信息宽度"></div>
+      <header class="details-header">
+        <h2>详细信息</h2>
+        <button class="icon-button" id="closeDetails" aria-label="关闭详细信息">
+          <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <div class="details-body" id="detailsBody"></div>
+    </aside>
+  </div>
+
+  <script src="files-manifest.js"></script>
+  <script>
+    const root = window.FILE_MANIFEST || {name:"所有文件",type:"folder",children:[]};
+
+    const folderIcon = '<span class="folder-icon"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/></svg></span>';
+    const fileIcon = '<span class="folder-icon"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/></svg></span>';
+    let currentFolder = root;
+    const folderStack = [root];
+    const expandedFolders = new Set();
+
+    function flatten(folder,prefix=""){
+      const result=[];
+      (folder.children||[]).forEach(item=>{
+        const pathKey=prefix?prefix+"/"+item.name:item.name;
+        const entry={...item,pathKey};
+        result.push(entry);
+        if(item.type==="folder")result.push(...flatten(item,pathKey));
+      });
+      return result;
+    }
+
+    function render(){
+      const query = document.querySelector("#search").value.trim().toLowerCase();
+      const visible=query
+        ?flatten(root).filter(item=>item.name.toLowerCase().includes(query))
+        :(currentFolder.children||[]).map(item=>({...item,pathKey:[...folderStack.slice(1).map(folder=>folder.name),item.name].join("/")}));
+      document.querySelector("#count").textContent = visible.length + " 个项目";
+      document.querySelector("#title").textContent=query?"搜索结果":currentFolder.name;
+      renderBreadcrumb();
+      renderFolderTree();
+      document.querySelector("#files").innerHTML = visible.length ? visible.map(item => `
+        <article class="card" data-path="${item.pathKey.replace(/"/g,"&quot;")}" ${item.url ? 'data-url="'+item.url+'"' : ""}>
+          <div class="preview">${item.type === "folder" ? folderIcon : fileIcon}</div>
+          <div class="card-info">
+            <span class="file-dot"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5"/></svg></span>
+            <div class="card-text"><span class="card-name">${item.name}</span><span class="card-meta">${query?item.pathKey:(item.meta||((item.children||[]).length+" 个项目"))}</span></div>
+          </div>
+        </article>`).join("") : '<div class="empty"><div><strong>没有找到文件</strong>请尝试其他搜索关键词</div></div>';
+    }
+
+    function renderFolderTree(){
+      const tree=document.querySelector("#folderTree");
+      tree.innerHTML=renderTreeItems(root.children||"");
+    }
+
+    function renderTreeItems(items,prefix=""){
+      return items.map(item=>{
+        const pathKey=prefix?prefix+"/"+item.name:item.name;
+        const isFolder=item.type==="folder";
+        const hasChildren=isFolder&&(item.children||[]).length>0;
+        const expanded=expandedFolders.has(pathKey);
+        const selected=isFolder&&folderStack[folderStack.length-1]===item&&!document.querySelector("#search").value.trim();
+        return `<div class="tree-node ${expanded?"expanded":""}" data-node-path="${pathKey}">
+          <div class="tree-line ${selected?"selected":""}">
+            ${hasChildren?`<button class="tree-expander" type="button" data-toggle-path="${pathKey}" aria-label="${expanded?"收起":"展开"} ${item.name}"><svg viewBox="0 0 16 16"><path d="m5 3 5 5-5 5"/></svg></button>`:'<span class="tree-expander spacer"></span>'}
+            <button class="tree-folder" type="button" data-tree-path="${pathKey}">
+              ${isFolder?'<svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v7a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5z"/></svg>':'<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5"/></svg>'}
+              <span>${item.name}</span>
+            </button>
+          </div>
+          ${hasChildren?`<div class="tree-children">${renderTreeItems(item.children,pathKey)}</div>`:""}
+        </div>`;
+      }).join("");
+    }
+
+    function renderBreadcrumb(){
+      const breadcrumb=document.querySelector("#breadcrumb");
+      breadcrumb.innerHTML=folderStack.map((folder,index)=>`
+        ${index?'<span>›</span>':''}<button data-level="${index}">${folder.name}</button>
+      `).join("");
+    }
+
+    function findItem(pathKey){
+      return flatten(root).find(item=>item.pathKey===pathKey);
+    }
+
+    function openFolder(folder,pathKey){
+      currentFolder=folder;
+      document.querySelector("#allFilesButton").classList.remove("active");
+      const names=pathKey?pathKey.split("/").filter(Boolean):[];
+      folderStack.splice(1);
+      let node=root;
+      names.forEach(name=>{
+        node=(node.children||[]).find(child=>child.name===name);
+        if(node)folderStack.push(node);
+      });
+      document.querySelector("#title").textContent=folder.name;
+      render();
+    }
+
+    function showDetails(item){
+      if(matchMedia("(max-width: 768px)").matches){
+        if(item.url)window.open(new URL(item.url,location.href).href,"_blank","noopener");
+        return;
+      }
+      document.querySelector(".app").classList.add("details-open");
+      document.querySelector("#detailsBody").innerHTML=`
+        <div class="details-preview">${item.type==="folder"?folderIcon:fileIcon}</div>
+        <p class="details-name">${item.name}</p>
+        <div class="detail-tree">
+          <section class="tree-group open">
+            <button class="tree-toggle" type="button" aria-expanded="true">
+              <span class="tree-arrow"><svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5"/></svg></span>
+              <span>基本信息</span>
+            </button>
+            <div class="tree-content">
+              <div class="tree-content-inner">
+                <div class="tree-row"><span class="tree-row-label">类型</span><span class="tree-row-value">${item.type==="folder"?"文件夹":item.type==="html"?"HTML 网站":item.category==="document"?"文档":item.category==="image"?"图片":"文件"}</span></div>
+                <div class="tree-row"><span class="tree-row-label">大小</span><span class="tree-row-value">${item.size||"—"}</span></div>
+                <div class="tree-row"><span class="tree-row-label">修改时间</span><span class="tree-row-value">${item.modified||"—"}</span></div>
+                ${item.url?'<div class="tree-row"><span class="tree-row-label">位置</span><span class="tree-row-value">'+item.url+'</span></div>':""}
+              </div>
             </div>
           </section>
-          <aside id="details-pane" class="details-pane">
-            <div class="details-empty">
-              <div class="empty-preview-icon">▧</div>
-              <strong>选择一个文件</strong>
-              <span>文件信息和内容摘要会显示在这里</span>
+          <section class="tree-group">
+            <button class="tree-toggle" type="button" aria-expanded="false">
+              <span class="tree-arrow"><svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5"/></svg></span>
+              <span>属性</span>
+            </button>
+            <div class="tree-content">
+              <div class="tree-content-inner">
+                <div class="tree-row"><span class="tree-row-label">只读</span><span class="tree-row-value">否</span></div>
+                <div class="tree-row"><span class="tree-row-label">隐藏</span><span class="tree-row-value">否</span></div>
+              </div>
             </div>
-          </aside>
+          </section>
         </div>
-      </section>
-      <footer class="statusbar"><span id="status-left">准备就绪</span><span id="status-right">本地材料</span></footer>
-    </main>
-  </div>
-  <script src="./app.js" defer></script>
+      `;
+
+      document.querySelectorAll("#detailsBody .tree-toggle").forEach(button=>{
+        button.addEventListener("click",()=>{
+          const group=button.closest(".tree-group");
+          const open=group.classList.toggle("open");
+          button.setAttribute("aria-expanded",open?"true":"false");
+        });
+      });
+    }
+
+    document.querySelector("#allFilesButton").addEventListener("click",()=>{
+      currentFolder=root;
+      folderStack.splice(1);
+      document.querySelector("#search").value="";
+      document.querySelector("#allFilesButton").classList.add("active");
+      document.querySelector("#sidebar").classList.remove("open");
+      document.querySelector("#sidebarScrim").classList.remove("open");
+      render();
+    });
+
+    document.querySelector("#search").addEventListener("input",render);
+    document.querySelector("#files").addEventListener("click",event=>{
+      const card=event.target.closest(".card");
+      if(!card)return;
+      const item=findItem(card.dataset.path);
+      if(!item)return;
+      if(item.type==="folder"){
+        document.querySelector("#search").value="";
+        openFolder(item,item.pathKey);
+      }else{
+        showDetails(item);
+      }
+    });
+    document.querySelector("#files").addEventListener("dblclick",event=>{
+      const card=event.target.closest("[data-url]");
+      if(card&&!matchMedia("(max-width: 768px)").matches)window.open(card.dataset.url,"_blank");
+    });
+    document.querySelector("#breadcrumb").addEventListener("click",event=>{
+      const button=event.target.closest("[data-level]");
+      if(!button)return;
+      const level=Number(button.dataset.level);
+      while(folderStack.length>level+1)folderStack.pop();
+      currentFolder=folderStack[folderStack.length-1];
+      document.querySelector("#search").value="";
+      document.querySelector("#title").textContent=currentFolder.name;
+      render();
+    });
+    document.querySelector("#folderTree").addEventListener("click",event=>{
+      const toggle=event.target.closest("[data-toggle-path]");
+      if(toggle){
+        const path=toggle.dataset.togglePath;
+        if(expandedFolders.has(path))expandedFolders.delete(path);
+        else expandedFolders.add(path);
+        renderFolderTree();
+        return;
+      }
+      const row=event.target.closest("[data-tree-path]");
+      if(!row)return;
+      const item=findItem(row.dataset.treePath);
+      if(!item)return;
+      document.querySelector("#search").value="";
+      document.querySelector("#allFilesButton").classList.remove("active");
+      if(item.type==="folder"){
+        openFolder(item,item.pathKey);
+      }else{
+        showDetails(item);
+      }
+      document.querySelector("#sidebar").classList.remove("open");
+      document.querySelector("#sidebarScrim").classList.remove("open");
+    });
+    document.querySelector("#closeDetails").addEventListener("click",()=>{
+      document.querySelector(".app").classList.remove("details-open");
+    });
+
+    const resizer=document.querySelector("#detailsResizer");
+    let resizing=false;
+    resizer.addEventListener("pointerdown",event=>{
+      resizing=true;
+      resizer.classList.add("dragging");
+      resizer.setPointerCapture(event.pointerId);
+    });
+    resizer.addEventListener("pointermove",event=>{
+      if(!resizing)return;
+      const width=Math.min(520,Math.max(240,innerWidth-event.clientX));
+      document.documentElement.style.setProperty("--details-width",width+"px");
+    });
+    resizer.addEventListener("pointerup",()=>{
+      resizing=false;
+      resizer.classList.remove("dragging");
+    });
+    document.querySelectorAll("[data-view]").forEach(button=>{
+      button.addEventListener("click",()=>{
+        document.querySelectorAll("[data-view]").forEach(el=>el.classList.remove("active"));
+        button.classList.add("active");
+        document.querySelector("#files").className=button.dataset.view;
+      });
+    });
+    document.querySelector("#theme").addEventListener("click",()=>{
+      const dark=document.documentElement.dataset.theme==="dark";
+      document.documentElement.dataset.theme=dark?"light":"dark";
+      localStorage.setItem("webfile-theme",dark?"light":"dark");
+    });
+    document.querySelector("#mobileMenu").addEventListener("click",()=>{
+      document.body.classList.remove("sidebar-collapsed");
+      const open=document.querySelector("#sidebar").classList.toggle("open");
+      document.querySelector("#sidebarScrim").classList.toggle("open",open);
+    });
+    document.querySelector("#sidebarScrim").addEventListener("click",()=>{
+      document.querySelector("#sidebar").classList.remove("open");
+      document.querySelector("#sidebarScrim").classList.remove("open");
+    });
+    document.querySelector("#sidebarToggle").addEventListener("click",()=>{
+      if(matchMedia("(max-width: 768px)").matches){
+        document.body.classList.remove("sidebar-collapsed");
+        document.querySelector("#sidebar").classList.remove("open");
+        document.querySelector("#sidebarScrim").classList.remove("open");
+      }else{
+        document.body.classList.toggle("sidebar-collapsed");
+      }
+    });
+
+    const saved=localStorage.getItem("webfile-theme");
+    if(saved)document.documentElement.dataset.theme=saved;
+    render();
+  </script>
 </body>
 </html>
